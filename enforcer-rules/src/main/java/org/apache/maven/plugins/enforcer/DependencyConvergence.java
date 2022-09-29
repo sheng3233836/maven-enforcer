@@ -51,6 +51,9 @@ public class DependencyConvergence
 
     private boolean uniqueVersions;
 
+    private List<String> includes = null;
+
+
     public void setUniqueVersions( boolean uniqueVersions )
     {
         this.uniqueVersions = uniqueVersions;
@@ -112,6 +115,8 @@ public class DependencyConvergence
             DependencyNode node = getNode( helper );
             DependencyVersionMap visitor = new DependencyVersionMap( log );
             visitor.setUniqueVersions( uniqueVersions );
+            visitor.setIncludes( includes );
+            log.info( "includes:" + String.join( ",", includes ) );
             node.accept( visitor );
             List<CharSequence> errorMsgs = new ArrayList<>();
             errorMsgs.addAll( getConvergenceErrorMsgs( visitor.getConflictedVersionNumbers() ) );
@@ -198,5 +203,10 @@ public class DependencyConvergence
     public boolean isResultValid( EnforcerRule rule )
     {
         return false;
+    }
+
+    public void setIncludes( List<String> includes )
+    {
+        this.includes = includes;
     }
 }

@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.maven.artifact.Artifact;
+import org.apache.maven.enforcer.rule.api.EnforcerRuleException;
 import org.apache.maven.plugin.logging.Log;
 import org.apache.maven.shared.dependency.graph.DependencyNode;
 import org.apache.maven.shared.dependency.graph.traversal.DependencyNodeVisitor;
@@ -38,10 +39,15 @@ public class DependencyVersionMap
 {
     private boolean uniqueVersions;
 
+    private List<String> includes = null;
+
+    private Log log;
+
     private Map<String, List<DependencyNode>> idsToNode;
 
     public DependencyVersionMap( Log log )
     {
+        this.log = log;
         idsToNode = new HashMap<>();
     }
     
@@ -105,16 +111,27 @@ public class DependencyVersionMap
         String version = null;
         for ( DependencyNode node : nodes )
         {
-            if ( version == null )
+            try
             {
-                version = getVersion( node.getArtifact() );
-            }
-            else
-            {
-                if ( version.compareTo( getVersion( node.getArtifact() ) ) != 0 )
+                if ( includes != null && !ArtifactUtils.compareDependencies( node.getArtifact(), includes ) )
                 {
-                    return true;
+                    return false;
                 }
+                if ( version == null )
+                {
+                    version = getVersion( node.getArtifact() );
+                }
+                else
+                {
+                    if ( version.compareTo( getVersion( node.getArtifact() ) ) != 0 )
+                    {
+                        return true;
+                    }
+                }
+            }
+            catch ( EnforcerRuleException e )
+            {
+                log.warn( "compareDependencies :" + e.getMessage() );
             }
         }
         return false;
@@ -131,5 +148,10 @@ public class DependencyVersionMap
             }
         }
         return output;
+    }
+
+    public void setIncludes( List<String> includes )
+    {
+        this.includes = includes;
     }
 }

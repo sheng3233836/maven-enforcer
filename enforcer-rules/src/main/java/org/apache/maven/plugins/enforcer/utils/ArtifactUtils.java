@@ -99,6 +99,26 @@ public final class ArtifactUtils
         return foundMatches;
     }
 
+    public static boolean compareDependencies( Artifact artifact, List<String> thePatterns )
+            throws EnforcerRuleException
+    {
+        if ( thePatterns != null && thePatterns.size() > 0 )
+        {
+            for ( String pattern : thePatterns )
+            {
+                String[] subStrings = pattern.split( ":" );
+                subStrings = StringUtils.stripAll( subStrings );
+                String resultPattern = StringUtils.join( subStrings, ":" );
+
+                if ( compareDependency( resultPattern, artifact ) )
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /**
      * Compares the given pattern against the given artifact. The pattern should follow the format
      * <code>groupId:artifactId:version:type:scope:classifier</code>.
